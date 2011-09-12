@@ -35,7 +35,7 @@ def write_index(index):
 	f.write(json.dumps(index, ensure_ascii=False, sort_keys=True, indent=2))
 	f.close()
 	
-	f = open('xkcd-db.csv', 'w')	
+	f = open('xkcd-db.csv', 'w')
 	writer = csv.DictWriter(f, ['number', 'date','title','desc','file'])#, quoting=csv.QUOTE_ALL)
 	#writer.writeheader() # will arrive in Python 3.2!
 	for entry in index:
@@ -44,6 +44,7 @@ def write_index(index):
 
 
 def fetch_index(index):
+	''' updates the index, returns how many new items were downloaded '''
 	
 	archive = fetch_text('https://www.xkcd.com/archive/')
 	
@@ -51,55 +52,63 @@ def fetch_index(index):
 	
 	page_pattern = r'<img src="http://imgs.xkcd.com/comics/(.*?)" title="(.*?)" alt="(.*?)" (USEMAP="#xkcdtemp_Map")?/>'
 	
+	counter = 0
+	
+	found = sorted([int(entry['number']) for entry in index])
+	
 	for a in re.finditer(archive_pattern, archive):
 		entry = dict()
-		entry['number']= a.group(1) # 886
-		entry['date']= a.group(2)   # 2011-4-15
-		entry['title']= a.group(3)  # Craigslist Apartments
+		entry['number'] = a.group(1) # 886
+		entry['date'] = a.group(2)   # 2011-4-15
+		entry['title'] = a.group(3)  # Craigslist Apartments
+		
+		if int(entry['number']) in found:
+			continue # don’t fetch what we already have
 		
 		page = fetch_text('https://www.xkcd.com/'+a.group(1)+'/')
+		p = re.search(page_pattern, page)
+		if(p == None):
+			continue
 		
-		for p in re.finditer(page_pattern, page):
-			
-			entry['file'] = p.group(1)                  # craigslist_apartments.png
-			entry['desc'] = html_unescape(p.group(2))   # $1600 / 1386153BR 3BATH, …
-			#entry['title'] = p.group(3)                # Craigslist Apartments
-			
-			o = 'image/{:04d}_{}'.format(int(entry['number']), entry['file'])
-			index.append(entry)
-			
-			for e in entry:
-				print('{:10s} = {}'.format(e, entry[e]))
-			print('Downloading …')
-			
-			image = open(o, 'wb')
-			image.write(fetch('http://imgs.xkcd.com/comics/'+entry['file']))
-			image.close()
-			
+		entry['file'] = p.group(1)                # craigslist_apartments.png
+		entry['desc'] = html_unescape(p.group(2)) # $1600 / 1386153BR 3BATH, …
+		#entry['title'] = p.group(3)              # Craigslist Apartments
 		
-	return index;
+		for e in entry:
+			print('{:10s} = {}'.format(e, entry[e]))
+		print('Downloading …')
+		
+		path = os.path.join('image', '{:04d}_{}'.format(int(entry['number']), entry['file']))
+		image = open(path, 'wb')
+		image.write(fetch('http://imgs.xkcd.com/comics/'+entry['file']))
+		image.close()
+		
+		index.append(entry)
+		found.append(int(entry['number']))
+		counter += 1
+	
+	# Search for errors:
+	missing = [i for i in range(1, max(found)+1) if (i not in found) and (i != 404)]
+	if len(missing)>0:
+		print('{:d} comics are missing:\n{}'.format(len(missing), missing))
+	else:
+		print('You are up-to-date again!')
+
+	return counter
 
 
 if not os.path.exists('image'):
 	os.mkdir('image')
 
-
 try:
 	index = read_index() # from disk
 except:
-	index = fetch_index([])
+	index = []
+	print('Running the first time (this may take a while – drink some tee) …')
 
-# Evaluate the index
+print('Start update …')
+if fetch_index(index)>0:
+	write_index(index)
 
-found = sorted([int(entry['number']) for entry in index])
-missing = [i for i in range(1, max(found)+1) if (i not in found) and (i != 404)]
-
-print('Found {:d} comics.'.format(len(found)))
-if len(missing)>0:
-	print('{:d} comics are missing:\n{}'.format(len(missing), missing))
-else:
-	print('You are up-to-date again!')
-
-# Finally …
-write_index(index)
+print('The database now contains {:d} comics.'.format(len(index)))
 

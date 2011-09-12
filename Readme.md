@@ -8,6 +8,10 @@ Usage:
 	grep python xkcd-db.csv
 	eog image/0016_monty_python.jpg
 
+To fetch new comics, just rerun the script:
+
+	./xkcd-fetch.py
+
 ## Dependencies
 Python 3 and [httplib2](https://code.google.com/p/httplib2/).
 
