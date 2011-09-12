@@ -21,7 +21,7 @@ def fetch_text(url):
 
 def read_index():
 	''' reads the index from a json file '''
-	f = open('image/index.json', 'r')
+	f = open('xkcd-db.json', 'r')
 	index = json.loads(f.read())
 	f.close()
 	return index
@@ -31,11 +31,11 @@ def write_index(index):
 	
 	index.sort(key=lambda entry: int(entry['number']))
 	
-	f = open('image/index.json', 'w')
+	f = open('xkcd-db.json', 'w')
 	f.write(json.dumps(index, ensure_ascii=False, sort_keys=True, indent=2))
 	f.close()
 	
-	f = open('image/index.csv', 'w')	
+	f = open('xkcd-db.csv', 'w')	
 	writer = csv.DictWriter(f, ['number', 'date','title','desc','file'])#, quoting=csv.QUOTE_ALL)
 	#writer.writeheader() # will arrive in Python 3.2!
 	for entry in index:
@@ -49,14 +49,13 @@ def fetch_index(index):
 	
 	archive_pattern = r'<a href="/(\d+)/" title="(\d{4}-\d{1,2}-\d{1,2})">(.*?)</a>'
 	
-	page_pattern = r'<img src="http://imgs.xkcd.com/comics/(.*?)" title="(.*?)" alt="(.*?)" /><br/>'
+	page_pattern = r'<img src="http://imgs.xkcd.com/comics/(.*?)" title="(.*?)" alt="(.*?)" (USEMAP="#xkcdtemp_Map")?/>'
 	
 	for a in re.finditer(archive_pattern, archive):
 		entry = dict()
 		entry['number']= a.group(1) # 886
 		entry['date']= a.group(2)   # 2011-4-15
 		entry['title']= a.group(3)  # Craigslist Apartments
-		print(entry)
 		
 		page = fetch_text('https://www.xkcd.com/'+a.group(1)+'/')
 		
@@ -67,12 +66,11 @@ def fetch_index(index):
 			#entry['title'] = p.group(3)                # Craigslist Apartments
 			
 			o = 'image/{:04d}_{}'.format(int(entry['number']), entry['file'])
+			index.append(entry)
 			
 			for e in entry:
 				print('{:10s} = {}'.format(e, entry[e]))
-			print('Filename:', o)
-			
-			index.append(entry)
+			print('Downloading …')
 			
 			image = open(o, 'wb')
 			image.write(fetch('http://imgs.xkcd.com/comics/'+entry['file']))
@@ -82,15 +80,14 @@ def fetch_index(index):
 	return index;
 
 
-
 if not os.path.exists('image'):
 	os.mkdir('image')
+
 
 try:
 	index = read_index() # from disk
 except:
 	index = fetch_index([])
-
 
 # Evaluate the index
 
@@ -100,7 +97,8 @@ missing = [i for i in range(1, max(found)+1) if (i not in found) and (i != 404)]
 print('Found {:d} comics.'.format(len(found)))
 if len(missing)>0:
 	print('{:d} comics are missing:\n{}'.format(len(missing), missing))
-
+else:
+	print('You are up-to-date again!')
 
 # Finally …
 write_index(index)

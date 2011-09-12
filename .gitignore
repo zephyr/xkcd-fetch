@@ -1,5 +1,7 @@
 .cache/
 image/
+Spezielles/
 
-*.html
+xkcd-db.*
+*.tar.gz
 Sink.md

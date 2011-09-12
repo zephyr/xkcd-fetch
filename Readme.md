@@ -2,16 +2,19 @@
 # xkcd-fetch
 A simple script to download all [xkcd](https://www.xkcd.com/) comics *and* its metadata.
 
+Usage:
+
+	./xkcd-fetch.py
+	grep python xkcd-db.csv
+	eog image/0016_monty_python.jpg
+
 ## Dependencies
-Python 3 and httplib2.
+Python 3 and [httplib2](https://code.google.com/p/httplib2/).
 
-## Status
-Currently, it support all comics *but* 18.
+## Implementation status
+*The good news*: currently it support all comics (*but* number 404 ;)).
 
-## Todo’s
-
-- support missing comics.
-- download bigger images (if existing)
+*The bad news*: the script only downloads the *normal* images – special (that means larger oder additional) images are not (yet?) supported.
 
 ## Licence
 
