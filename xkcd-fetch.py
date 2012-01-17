@@ -46,7 +46,7 @@ def write_index(index):
 def fetch_index(index):
 	''' updates the index, returns how many new items were downloaded '''
 	
-	archive = fetch_text('https://www.xkcd.com/archive/')
+	archive = fetch_text('http://www.xkcd.com/archive/')
 	
 	archive_pattern = r'<a href="/(\d+)/" title="(\d{4}-\d{1,2}-\d{1,2})">(.*?)</a>'
 	
@@ -65,7 +65,7 @@ def fetch_index(index):
 		if int(entry['number']) in found:
 			continue # don’t fetch what we already have
 		
-		page = fetch_text('https://www.xkcd.com/'+a.group(1)+'/')
+		page = fetch_text('http://www.xkcd.com/'+a.group(1)+'/')
 		p = re.search(page_pattern, page)
 		if(p == None):
 			continue
