@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 
 import csv, html.parser, json, os, re
-import httplib2
+import urllib.request
 
 
 def html_unescape(s):
 	p = html.parser.HTMLParser()
 	return p.unescape(s)
 
-
-http = httplib2.Http('.cache')
-
 def fetch(url):
-	response, content = http.request(url, 'GET')
-	return content
+	r = urllib.request.urlopen(url)
+	return r.read()
 
 def fetch_text(url):
 	return fetch(url).decode('utf-8')

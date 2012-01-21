@@ -5,7 +5,7 @@ A simple script to download all [xkcd](https://www.xkcd.com/) comics *and* their
 
 ## Dependencies
 
-Python 3 and [httplib2](https://code.google.com/p/httplib2/).
+Python 3.1 or later.
 
 ## Usage
 
