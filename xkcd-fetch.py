@@ -61,6 +61,8 @@ def fetch_index(index):
 		
 		if int(entry['number']) in found:
 			continue # don’t fetch what we already have
+		if int(entry['number']) in (1388,1371):
+			continue # interactive issues with error
 		
 		page = fetch_text('http://www.xkcd.com/'+a.group(1)+'/')
 		p = re.search(page_pattern, page)
@@ -94,6 +96,8 @@ def fetch_index(index):
 	return counter
 
 
+
+# Main
 if not os.path.exists('image'):
 	os.mkdir('image')
 
